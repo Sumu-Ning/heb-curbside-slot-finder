@@ -5,6 +5,9 @@ const addressApi = "https://www.heb.com/commerce-api/v1/store/locator/address";
 const timeSlotApi = function (storeId) {
     return `https://www.heb.com/commerce-api/v1/timeslot/timeslots?store_id=${storeId}&days=15&fulfillment_type=pickup`;
 };
+const hebStoreUrl = function (storeId) {
+    return `https://www.heb.com/heb-store/${storeId}`;
+};
 
 /* HEB API */
 function buildStoreRequestBody() {
@@ -134,7 +137,7 @@ function renderStoreContainer(store, distance) {
     const html = `
         <div id="store${storeId}" class="store">
             <div id="store${storeId}Address">
-                <div class="storeName">${storeName}<span class="align-right">${distanceString}</span></div>
+                <div class="storeName">${storeName}<button id="store${storeId}Select" class="storeSelect">Select</button><span class="align-right">${distanceString}</span></div>
                 <div class="storeAddress">${addressStreet}</div>
                 <div class="storeAddress">${addressCity}, ${addressState} ${addressPostalCode}</div>
             </div>
@@ -145,6 +148,13 @@ function renderStoreContainer(store, distance) {
     `;
 
     document.getElementById('resultContainer').insertAdjacentHTML('beforeend', html);
+
+    const selectButton = document.getElementById(`store${storeId}Select`);
+    selectButton.addEventListener('click', () => {
+        console.log("Select Store!");
+        const storeUrl = hebStoreUrl(storeId);
+        chrome.tabs.create({url: storeUrl});
+    });
 }
 
 function renderStoreSlots(storeId, slots) {

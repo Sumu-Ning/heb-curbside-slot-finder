@@ -5,7 +5,9 @@
   "permissions": [
     "activeTab",
     "declarativeContent",
-    "storage"
+    "storage",
+    "cookies",
+    "http://www.heb.com/"
   ],
   "background": {
     "scripts": [
