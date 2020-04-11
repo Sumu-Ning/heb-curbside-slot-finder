@@ -17,6 +17,7 @@ label {
 
 input {
     display: inline-block;
+    font-size: 12px;
 }
 
 #optionParameter input {
