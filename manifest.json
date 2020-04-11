@@ -1,0 +1,28 @@
+{
+  "name": "H-E-B Curbside Slot Finder",
+  "version": "1.0",
+  "description": "H-E-B Curbside Slot Finder. Please be nice to H-E-B, and don't abuse it",
+  "permissions": [
+    "activeTab",
+    "declarativeContent",
+    "storage"
+  ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": false
+  },
+  "page_action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/heb-16x16.png",
+      "32": "images/heb-32x32.png"
+    }
+  },
+  "icons": {
+    "16": "images/heb-16x16.png",
+    "32": "images/heb-32x32.png"
+  },
+  "manifest_version": 2
+}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="logic.js"></script>
+</head>
+<body>
+<H3>
+    H-E-B curbside slot finder!
+</H3>
+
+<hr>
+
+<div id="optionParameter">
+    <div>
+        <label>Radius (Mile)</label>
+        <input id="radius" class="align-right" type="number" min="0" step="1">
+    </div>
+    <div>
+        <label>Max Stores</label>
+        <input id="maxStore" class="align-right" type="number" min="0" step="1">
+    </div>
+    <div>
+        <label>Max Slots</label>
+        <input id="maxSlot" class="align-right" type="number" min="0" step="1">
+    </div>
+</div>
+
+<hr>
+
+<div id="queryParameter">
+    <div>
+        <label>Address or Zip Code</label>
+    </div>
+    <div>
+        <input id="address">
+        <button id="query" class="align-right">Query</button>
+    </div>
+</div>
+
+<hr>
+
+<div id="result">
+    <div><span class="resultTitle">Results</span><span id="resultCount" class="align-right"></span></div>
+    <div id="resultContainer"></div>
+</div>
+
+</body>
+</html>

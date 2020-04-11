@@ -1,0 +1,86 @@
+body {
+    font-family: Open Sans, sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+    min-width: 300px;
+}
+
+label {
+    display: inline-block;
+}
+
+input {
+    display: inline-block;
+}
+
+#optionParameter input {
+    text-align: right;
+    width: 80px;
+}
+
+button {
+    display: inline-block;
+    background-color: lightgray;
+}
+
+#querySubmit {
+    margin-top: 5px;
+}
+
+#address {
+    width: 240px;
+}
+
+.align-left {
+    float: left;
+}
+
+.align-right {
+    float: right;
+}
+
+.resultTitle {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.store {
+    margin-top: 5px;
+}
+
+.storeName {
+    font-size: 12px;
+    font-weight: bold;
+    background-color: #EE2026;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.storeAddress {
+    font-size: 10px;
+    background-color: #00ACC6;
+    padding-left: 10px;
+    padding-right: 5px;
+}
+
+.storeSlot {
+    font-size: 10px;
+    padding-left: 20px;
+    padding-right: 5px;
+}
+
+.storeSlotDate {
+    font-weight: bold;
+}
+
+.storeSlotTime {
+
+}
+
+.storeSlotAvailable {
+    background-color: lightgreen;
+}
+
+.storeSlotNotAvailable {
+    background-color: lightpink;
+}
