@@ -2,7 +2,7 @@ body {
     font-family: Open Sans, sans-serif;
     font-size: 14px;
     line-height: 20px;
-    min-width: 360px;
+    min-width: 400px;
 }
 
 .disclaimer {
@@ -20,18 +20,19 @@ input {
     font-size: 10px;
 }
 
-#optionParameter input {
+button {
+    background-color: lightgray;
+    display: inline-block;
+}
+
+.action {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.numberFormat {
     text-align: right;
     width: 80px;
-}
-
-button {
-    display: inline-block;
-    background-color: lightgray;
-}
-
-#querySubmit {
-    margin-top: 5px;
 }
 
 #address {
@@ -95,4 +96,12 @@ button {
 
 .storeSlotNotAvailable {
     background-color: lightpink;
+}
+
+.storeSlotAvailable {
+    background-color: lightgreen;
+}
+
+.storeSlotPending {
+    background-color: lightyellow;
 }

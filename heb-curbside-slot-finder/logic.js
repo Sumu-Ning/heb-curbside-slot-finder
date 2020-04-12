@@ -40,7 +40,19 @@ async function findStores() {
     });
     const json = await response.json();
 
-    return json.stores;
+    return json.stores.map(storeRecord => {
+        return {
+            distance: storeRecord.distance,
+            store: {
+                id: storeRecord.store.id,
+                name: storeRecord.store.name,
+                address1: storeRecord.store.address1,
+                city: storeRecord.store.city,
+                state: storeRecord.store.state,
+                postalCode: storeRecord.store.postalCode
+            }
+        };
+    });
 }
 
 async function findCurbsideSlots(storeId) {
@@ -72,39 +84,43 @@ function save(key, value) {
     const entry = {};
     entry[key] = value;
     chrome.storage.sync.set(entry, () => {
-        console.log('Save: ' + JSON.stringify(entry));
+        console.log(`Save: ${JSON.stringify(entry)}`);
     });
 }
 
-function load(key, defaultValue, elementId) {
+function load(key, defaultValue, callback) {
     chrome.storage.sync.get(key, entry => {
         let value;
         if (entry && entry[key]) {
-            console.log('Read Found: ' + JSON.stringify(entry));
+            console.log(`Key [${key}] Found: [${JSON.stringify(entry)}]`);
             value = entry[key];
         } else {
-            console.log('Read Not Found, default value: ' + defaultValue);
+            console.log(`Key [${key}] Not Found, default value: [${defaultValue}]`);
             value = defaultValue;
         }
 
-        document.getElementById(elementId).value = value;
+        callback(value);
     });
 }
 
 function loadRadius() {
-    return load('radius', 10, 'radius');
+    load('radius', 10, value => document.getElementById('radius').value = value);
 }
 
 function loadMaxStore() {
-    return load('maxStore', 10, 'maxStore');
-}
-
-function loadMaxSlot() {
-    return load('maxSlot', 5, 'maxSlot');
+    load('maxStore', 10, value => document.getElementById('maxStore').value = value);
 }
 
 function loadAddress() {
-    return load('address', "", 'address');
+    load('address', "", value => document.getElementById('address').value = value);
+}
+
+function loadMaxSlot() {
+    load('maxSlot', 5, value => document.getElementById('maxSlot').value = value);
+}
+
+function loadStoreRecords() {
+    load('storeRecords', [], storeRecords => renderStoreRecords(storeRecords));
 }
 
 /* Property */
@@ -125,7 +141,21 @@ function renderStoreCount(allStoreCount, displayStoreCount) {
     document.getElementById("resultCount").innerText = `${allStoreCount} store(s) found, displaying top ${displayStoreCount}`;
 }
 
-function renderStoreContainer(store, distance) {
+function renderStoreRecords(storeRecords) {
+    const maxStore = getMaxStore();
+    const filteredStoreRecords = storeRecords.slice(0, maxStore);
+
+    renderStoreCount(storeRecords.length, filteredStoreRecords.length);
+
+    for (const storeRecord of filteredStoreRecords) {
+        const store = storeRecord.store;
+        const distance = storeRecord.distance;
+
+        renderStoreRecord(store, distance);
+    }
+}
+
+function renderStoreRecord(store, distance) {
     const storeId = store.id;
     const storeName = store.name;
     const addressStreet = store.address1;
@@ -142,7 +172,7 @@ function renderStoreContainer(store, distance) {
                 <div class="storeAddress">${addressCity}, ${addressState} ${addressPostalCode}</div>
             </div>
             <div id="store${storeId}Slots">
-                <div class="storeSlot">Querying ...</div>
+                <div class="storeSlot storeSlotPending">Querying ...</div>
             </div>
         </div>
     `;
@@ -153,13 +183,20 @@ function renderStoreContainer(store, distance) {
     selectButton.addEventListener('click', () => {
         console.log("Select Store!");
         const storeUrl = hebStoreUrl(storeId);
+        chrome.runtime.sendMessage({
+            message: "sendNotification",
+            payload: {
+                type: "basic",
+                iconUrl: "./images/heb-curbside-icon.jpeg",
+                title: "Curbside slot found!",
+                message: storeUrl
+            }
+        });
         chrome.tabs.create({url: storeUrl});
     });
 }
 
-function renderStoreSlots(storeId, slots) {
-    const storeSlotsElementId = `store${storeId}Slots`;
-
+function renderStoreSlots(storeSlotsElementId, slots) {
     let html = "";
 
     if (slots && slots.length > 0) {
@@ -170,59 +207,64 @@ function renderStoreSlots(storeId, slots) {
 
             html += `<div class=\"storeSlot storeSlotAvailable\"><span class="storeSlotDate">${date}</span>: <span class="storeSlotTime">${startTime}</span> - <span class="storeSlotTime">${endTime}</span></div>`;
         }
-
-        document.getElementById(storeSlotsElementId).innerHTML
-    } else {
+    } else if (slots && slots.length === 0) {
         html = "<div class=\"storeSlot storeSlotNotAvailable\">No slots available</div>";
+    } else {
+        html = "<div class=\"storeSlot storeSlotPending\">Querying ...</div>";
     }
 
     document.getElementById(storeSlotsElementId).innerHTML = html;
 }
 
 /* Page */
-function saveOption() {
-    console.log("Saving Option!");
-    save('radius', document.getElementById('radius').value);
-    save('maxStore', document.getElementById('maxStore').value);
-    save('maxSlot', document.getElementById('maxSlot').value);
-    save('address', document.getElementById('address').value);
-}
-
 function loadOption() {
     console.log("Loading Option!");
     loadRadius();
     loadMaxStore();
-    loadMaxSlot();
     loadAddress();
+    loadMaxSlot();
+}
+
+async function search() {
+    console.log("Search!");
+    save('radius', document.getElementById('radius').value);
+    save('maxStore', document.getElementById('maxStore').value);
+    save('address', document.getElementById('address').value);
+
+    document.getElementById("resultCount").innerText = "";
+    document.getElementById('resultContainer').innerHTML = "";
+
+    const storeRecords = await findStores();
+    save('storeRecords', storeRecords);
+    renderStoreRecords(storeRecords);
+
+    await query();
 }
 
 async function query() {
     console.log("Query!");
-    saveOption();
-    document.getElementById("resultCount").innerText = "";
-    document.getElementById('resultContainer').innerHTML = "";
+    save('maxSlot', document.getElementById('maxSlot').value);
 
-    const stores = await findStores();
-    const maxStore = getMaxStore();
     const maxSlot = getMaxSlot();
-    const filteredStores = stores.slice(0, maxStore);
+    const storeRecordElements = document.getElementById('resultContainer').children;
 
-    renderStoreCount(stores.length, filteredStores.length);
+    for (const storeRecordElement of storeRecordElements) {
+        const storeRecordElementId = storeRecordElement.id;
+        const storeId = storeRecordElementId.substring(5);
+        const storeSlotsElementId = "" + storeRecordElementId + "Slots";
 
-    for (const storeRecord of filteredStores) {
-        const store = storeRecord.store;
-        const distance = storeRecord.distance;
+        renderStoreSlots(storeSlotsElementId, null);
 
-        renderStoreContainer(store, distance);
-
-        const storeId = store.id;
         const slots = await findCurbsideSlots(storeId);
-        renderStoreSlots(storeId, slots.slice(0, maxSlot));
+        renderStoreSlots(storeSlotsElementId, slots.slice(0, maxSlot));
     }
 }
 
 /* Execute */
 document.addEventListener('DOMContentLoaded', function () {
-    loadOption();
+    document.getElementById('search').addEventListener('click', search);
     document.getElementById('query').addEventListener('click', query);
+    loadOption();
+    loadStoreRecords();
+    setTimeout(() => query(), 1000);
 });

@@ -13,18 +13,22 @@
 
 <hr>
 
-<div id="optionParameter">
+<div id="searchParameter">
     <div>
         <label>Radius (Mile)</label>
-        <input id="radius" class="align-right" type="number" min="0" step="1">
+        <input id="radius" class="numberFormat align-right" type="number" min="0" step="1">
     </div>
     <div>
         <label>Max Stores</label>
-        <input id="maxStore" class="align-right" type="number" min="0" step="1">
+        <input id="maxStore" class="numberFormat align-right" type="number" min="0" step="1">
     </div>
     <div>
-        <label>Max Slots</label>
-        <input id="maxSlot" class="align-right" type="number" min="0" step="1">
+        <label>Address or Zip Code</label>
+        <input id="address" class="align-right">
+    </div>
+    <div class="action">
+        <label>Search Stores</label>
+        <button id="search" class="align-right">Search</button>
     </div>
 </div>
 
@@ -32,10 +36,11 @@
 
 <div id="queryParameter">
     <div>
-        <label>Address or Zip Code</label>
+        <label>Max Slots</label>
+        <input id="maxSlot" class="numberFormat align-right" type="number" min="0" step="1">
     </div>
-    <div>
-        <input id="address">
+    <div class="action">
+        <label>Query Slots</label>
         <button id="query" class="align-right">Query</button>
     </div>
 </div>
