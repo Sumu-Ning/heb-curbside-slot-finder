@@ -119,6 +119,22 @@ function loadMaxSlot() {
     load('maxSlot', 5, value => document.getElementById('maxSlot').value = value);
 }
 
+function loadMonitor() {
+    load('monitor', 0, value => {
+        if (value) {
+            document.getElementById('monitorOn').checked = true;
+            document.getElementById('interval').disabled = false;
+        } else {
+            document.getElementById('monitorOff').checked = true;
+            document.getElementById('interval').disabled = true;
+        }
+    });
+}
+
+function loadInterval() {
+    load('interval', 5, value => document.getElementById('interval').value = value)
+}
+
 function loadStoreRecords() {
     load('storeRecords', [], storeRecords => renderStoreRecords(storeRecords));
 }
@@ -136,6 +152,14 @@ function getMaxSlot() {
     return parseInt(document.getElementById('maxSlot').value);
 }
 
+function getMonitor() {
+    return document.getElementById('monitorOn').checked;
+}
+
+function getInterval() {
+    return parseInt(document.getElementById('interval').value);
+}
+
 /* Block Rendering */
 function renderStoreCount(allStoreCount, displayStoreCount) {
     document.getElementById("resultCount").innerText = `${allStoreCount} store(s) found, displaying top ${displayStoreCount}`;
@@ -148,20 +172,21 @@ function renderStoreRecords(storeRecords) {
     renderStoreCount(storeRecords.length, filteredStoreRecords.length);
 
     for (const storeRecord of filteredStoreRecords) {
-        const store = storeRecord.store;
-        const distance = storeRecord.distance;
-
-        renderStoreRecord(store, distance);
+        renderStoreRecord(storeRecord);
     }
 }
 
-function renderStoreRecord(store, distance) {
+function renderStoreRecord(storeRecord) {
+    const distance = storeRecord.distance;
+    const store = storeRecord.store;
+
     const storeId = store.id;
     const storeName = store.name;
     const addressStreet = store.address1;
     const addressCity = store.city;
     const addressState = store.state;
     const addressPostalCode = store.postalCode;
+
     const distanceString = "" + distance.toFixed(2) + " mile(s)";
 
     const html = `
@@ -172,26 +197,18 @@ function renderStoreRecord(store, distance) {
                 <div class="storeAddress">${addressCity}, ${addressState} ${addressPostalCode}</div>
             </div>
             <div id="store${storeId}Slots">
-                <div class="storeSlot storeSlotPending">Querying ...</div>
+                <div class="storeSlot storeSlotPending"></div>
             </div>
         </div>
     `;
 
     document.getElementById('resultContainer').insertAdjacentHTML('beforeend', html);
+    renderStoreSlots(`store${storeId}Slots`, "No Data");
 
     const selectButton = document.getElementById(`store${storeId}Select`);
     selectButton.addEventListener('click', () => {
         console.log("Select Store!");
         const storeUrl = hebStoreUrl(storeId);
-        chrome.runtime.sendMessage({
-            message: "sendNotification",
-            payload: {
-                type: "basic",
-                iconUrl: "./images/heb-curbside-icon.jpeg",
-                title: "Curbside slot found!",
-                message: storeUrl
-            }
-        });
         chrome.tabs.create({url: storeUrl});
     });
 }
@@ -199,7 +216,9 @@ function renderStoreRecord(store, distance) {
 function renderStoreSlots(storeSlotsElementId, slots) {
     let html = "";
 
-    if (slots && slots.length > 0) {
+    if ("string" === typeof slots) {
+        html = `<div class=\"storeSlot storeSlotPending\">${slots}</div>`;
+    } else if (slots && slots.length > 0) {
         for (const slot of slots) {
             const date = slot.date;
             const startTime = slot.timeslot.startTime.substring(11, 16);
@@ -209,8 +228,6 @@ function renderStoreSlots(storeSlotsElementId, slots) {
         }
     } else if (slots && slots.length === 0) {
         html = "<div class=\"storeSlot storeSlotNotAvailable\">No slots available</div>";
-    } else {
-        html = "<div class=\"storeSlot storeSlotPending\">Querying ...</div>";
     }
 
     document.getElementById(storeSlotsElementId).innerHTML = html;
@@ -250,21 +267,58 @@ async function query() {
 
     for (const storeRecordElement of storeRecordElements) {
         const storeRecordElementId = storeRecordElement.id;
-        const storeId = storeRecordElementId.substring(5);
         const storeSlotsElementId = "" + storeRecordElementId + "Slots";
 
-        renderStoreSlots(storeSlotsElementId, null);
+        renderStoreSlots(storeSlotsElementId, "Querying ...");
+    }
+
+    for (const storeRecordElement of storeRecordElements) {
+        const storeRecordElementId = storeRecordElement.id;
+        const storeId = storeRecordElementId.substring(5);
+        const storeSlotsElementId = "" + storeRecordElementId + "Slots";
 
         const slots = await findCurbsideSlots(storeId);
         renderStoreSlots(storeSlotsElementId, slots.slice(0, maxSlot));
     }
 }
 
+function updateMonitor(interval) {
+    chrome.runtime.sendMessage({
+        message: "updateMonitor",
+        payload: {
+            interval: interval
+        }
+    });
+}
+
+function switchMonitor() {
+    const monitor = getMonitor();
+    if (monitor) {
+        save('monitor', 1);
+        document.getElementById('interval').disabled = false;
+        updateMonitor(getInterval());
+    } else {
+        save('monitor', 0);
+        document.getElementById('interval').disabled = true;
+        updateMonitor(0);
+    }
+}
+
+function updateInterval() {
+    const interval = getInterval();
+    save('interval', interval);
+    updateMonitor(interval);
+}
+
 /* Execute */
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('search').addEventListener('click', search);
     document.getElementById('query').addEventListener('click', query);
+    document.getElementById('monitorOn').addEventListener('click', switchMonitor);
+    document.getElementById('monitorOff').addEventListener('click', switchMonitor);
+    document.getElementById('interval').addEventListener('change', updateInterval);
     loadOption();
     loadStoreRecords();
-    setTimeout(() => query(), 1000);
+    loadMonitor();
+    loadInterval();
 });

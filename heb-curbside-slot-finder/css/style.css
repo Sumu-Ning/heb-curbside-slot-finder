@@ -47,9 +47,18 @@ button {
     float: right;
 }
 
+.monitorTitle {
+    font-size: 16px;
+    font-weight: bold;
+}
+
 .resultTitle {
     font-size: 16px;
     font-weight: bold;
+}
+
+#intervalSelect {
+    margin-top: 10px;
 }
 
 .store {
