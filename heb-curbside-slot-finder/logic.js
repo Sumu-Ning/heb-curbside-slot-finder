@@ -18,7 +18,7 @@ function buildStoreRequestBody() {
     };
 }
 
-async function findStores() {
+async function findStores(maxStore) {
     const response = await fetch(addressApi, {
         "credentials": "include",
         "headers": {
@@ -40,8 +40,9 @@ async function findStores() {
     });
     const json = await response.json();
 
-    return json.stores.map(storeRecord => {
+    return json.stores.map((storeRecord, index) => {
         return {
+            selected: index < maxStore ? 1 : 0,
             distance: storeRecord.distance,
             store: {
                 id: storeRecord.store.id,
@@ -251,7 +252,8 @@ async function search() {
     document.getElementById("resultCount").innerText = "";
     document.getElementById('resultContainer').innerHTML = "";
 
-    const storeRecords = await findStores();
+    const maxStore = getMaxStore();
+    const storeRecords = await findStores(maxStore);
     save('storeRecords', storeRecords);
     renderStoreRecords(storeRecords);
 

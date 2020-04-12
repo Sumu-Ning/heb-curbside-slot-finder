@@ -101,7 +101,9 @@ function sendSlotFoundNotification(storeRecord) {
 function checkSlots() {
     console.log("Check Slots!");
     load('storeRecords', [], storeRecords => {
-        storeRecords.forEach(storeRecord => {
+        storeRecords
+            .filter(storeRecord => storeRecord.selected)
+            .forEach(storeRecord => {
             const storeId = storeRecord.store.id;
 
             findCurbsideSlots(storeId).then(slots => {

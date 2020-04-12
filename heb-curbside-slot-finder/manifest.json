@@ -1,6 +1,6 @@
 {
   "name": "H-E-B Curbside Slot Finder",
-  "version": "1.0",
+  "version": "1.1",
   "description": "H-E-B Curbside Slot Finder. Please be nice to H-E-B, and don't abuse it",
   "permissions": [
     "activeTab",
